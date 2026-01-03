@@ -43,6 +43,9 @@ strict = true
 ignore_missing_imports = true
 
 [tool.ruff]
+line-length = 88
+
+[tool.ruff.lint]
 select = [
     "F", # pyflakes
     "E", # pycodestyle
@@ -51,13 +54,13 @@ select = [
     "D", # pydocstyle
 ]
 ignore = []
-line-length = 88
-
 extend-ignore = [
+    "D100", # undocumented-public-module
     "D105", # undocumented-magic-method
     "D107", # undocumented-public-init
     "D205", # blank-line-after-summary
-    "D415" # ends-in-punctuation
+    "D212", # multi-line-summary-first-line
+    "D415", # ends-in-punctuation
 ]
 
 [tool.ruff.lint.pydocstyle]
