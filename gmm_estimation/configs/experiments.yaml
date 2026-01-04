@@ -1,0 +1,20 @@
+# Experiment scenario configurations
+scenario: default
+
+default:
+  # Problem dimension
+  dim: 1
+  # Number of mixture components
+  K: 4
+  # Separation between components
+  separation: 3.0
+  # Standard deviation of Gaussian components
+  sigma: 1.0
+  # Number of training samples
+  n_train: 1000
+  # Number of test samples
+  n_test: 2000
+  # Number of independent runs
+  R: 100
+  # Random seed (null for no fixed seed)
+  seed: null

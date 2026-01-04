@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import multiprocessing as mp
 from typing import Any, Dict, List, Optional
 
@@ -295,11 +297,3 @@ def run_parallel(
         )
         out[k] = {"mean_ED2": mean, "stderr": se, "runs": int(arr.size)}
     return out
-
-
-def _parse_devices(dev_str: str) -> List[int]:
-    if dev_str.lower() == "auto":
-        if not torch.cuda.is_available():
-            return []
-        return list(range(torch.cuda.device_count()))
-    return [int(x) for x in dev_str.split(",") if x.strip()]

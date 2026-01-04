@@ -1,0 +1,12 @@
+# Optimization parameter configurations
+optimizer: default
+
+default:
+  # Number of optimization steps
+  steps: 1200
+  # Number of particles for variational inference
+  M: 32
+  # Subsample count
+  S: 32
+  # Gamma scale for regularization
+  gamma_scale: 1.0e-4

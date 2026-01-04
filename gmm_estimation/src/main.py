@@ -1,89 +1,68 @@
-import argparse
+from pathlib import Path
 
 import torch
+import yaml  # type: ignore
 from runners.run_parallel import run_parallel
 from runners.run_sequantial import run_sequantial
+from utils.config import load_config
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Run GMM estimation experiments")
-    parser.add_argument(
-        "--mode",
-        type=str,
-        choices=["sequential", "parallel"],
-        default="sequential",
-        help="Execution mode: 'sequential' or 'parallel' (default: sequential)",
-    )
-    parser.add_argument("--dim", type=int, default=1, help="Dimension (default: 1)")
-    parser.add_argument(
-        "--K", type=int, default=4, help="Number of mixture components (default: 4)"
-    )
-    parser.add_argument(
-        "--separation", type=float, default=3.0, help="Separation (default: 3.0)"
-    )
-    parser.add_argument(
-        "--sigma", type=float, default=1.0, help="Standard deviation (default: 1.0)"
-    )
-    parser.add_argument(
-        "--n-train", type=int, default=1000, help="Training samples (default: 1000)"
-    )
-    parser.add_argument(
-        "--n-test", type=int, default=2000, help="Test samples (default: 2000)"
-    )
-    parser.add_argument(
-        "--steps", type=int, default=1200, help="Optimization steps (default: 1200)"
-    )
-    parser.add_argument(
-        "--M", type=int, default=32, help="Particle count (default: 32)"
-    )
-    parser.add_argument(
-        "--S", type=int, default=32, help="Subsample count (default: 32)"
-    )
-    parser.add_argument(
-        "--gamma-scale", type=float, default=1e-4, help="Gamma scale (default: 1e-4)"
-    )
-    parser.add_argument(
-        "--R", type=int, default=100, help="Number of runs (default: 100)"
-    )
-    parser.add_argument("--seed", type=int, default=None, help="Random seed (optional)")
-    parser.add_argument(
-        "--devices",
-        type=str,
-        default="auto",
-        help="GPU IDs for parallel mode: comma-separated or 'auto' (default: auto)",
-    )
+    # Load configuration directory
+    config_dir = Path(__file__).parent.parent / "configs"
 
-    args = parser.parse_args()
+    # Load configuration files
+    exp_config = load_config(config_dir / "experiments.yaml")
+    opt_config = load_config(config_dir / "opt.yaml")
+    runner_config = load_config(config_dir / "runner.yaml")
+
+    # Get default experiment scenario parameters
+    active_scenario = exp_config.get("scenario", "default")
+    if active_scenario not in exp_config:
+        raise ValueError(
+            f"Experiment scenario '{active_scenario}' not found in experiments.yaml"
+        )
+    exp_params = exp_config[active_scenario]
+
+    # Get default optimizer parameters
+    active_optimizer = opt_config.get("optimizer", "default")
+    if active_optimizer not in opt_config:
+        raise ValueError(f"Optimizer '{active_optimizer}' not found in opt.yaml")
+    opt_params = opt_config[active_optimizer]
+
+    # Get runner configuration
+    mode = runner_config["mode"]
+    devices_config = runner_config["devices"]
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
-    if args.mode == "sequential":
+    if mode == "sequential":
         print("Running SEQUENTIAL mode...")
         results = run_sequantial(
-            dim=args.dim,
-            K=args.K,
-            separation=args.separation,
-            sigma=args.sigma,
-            n_train=args.n_train,
-            n_test=args.n_test,
-            steps=args.steps,
-            M=args.M,
-            S=args.S,
-            gamma_scale=args.gamma_scale,
-            R=args.R,
-            seed=args.seed,
+            dim=exp_params["dim"],
+            K=exp_params["K"],
+            separation=exp_params["separation"],
+            sigma=exp_params["sigma"],
+            n_train=exp_params["n_train"],
+            n_test=exp_params["n_test"],
+            steps=opt_params["steps"],
+            M=opt_params["M"],
+            S=opt_params["S"],
+            gamma_scale=opt_params["gamma_scale"],
+            R=exp_params["R"],
+            seed=exp_params["seed"],
             device=device,
             dtype=torch.float64,
         )
-    elif args.mode == "parallel":
+    elif mode == "parallel":
         print("Running PARALLEL mode...")
-        if args.devices.lower() == "auto":
+        if devices_config.lower() == "auto":
             devices = (
                 list(range(torch.cuda.device_count()))
                 if torch.cuda.is_available()
                 else []
             )
         else:
-            devices = [int(x) for x in args.devices.split(",") if x.strip()]
+            devices = [int(x) for x in devices_config.split(",") if x.strip()]
 
         if len(devices) < 2:
             raise RuntimeError(
@@ -92,19 +71,31 @@ if __name__ == "__main__":
 
         results = run_parallel(
             devices=devices,
-            dim=args.dim,
-            K=args.K,
-            separation=args.separation,
-            sigma=args.sigma,
-            n_train=args.n_train,
-            n_test=args.n_test,
-            steps=args.steps,
-            M=args.M,
-            S=args.S,
-            gamma_scale=args.gamma_scale,
-            R=args.R,
-            base_seed=args.seed if args.seed is not None else 0,
+            dim=exp_params["dim"],
+            K=exp_params["K"],
+            separation=exp_params["separation"],
+            sigma=exp_params["sigma"],
+            n_train=exp_params["n_train"],
+            n_test=exp_params["n_test"],
+            steps=opt_params["steps"],
+            M=opt_params["M"],
+            S=opt_params["S"],
+            gamma_scale=opt_params["gamma_scale"],
+            R=exp_params["R"],
+            base_seed=exp_params["seed"] if exp_params["seed"] is not None else 0,
         )
+
+    # Print results
+    # Print configuration (experiment, optimizer, runner)
+    print("\n" + "=" * 50)
+    print("CONFIGURATION")
+    print("=" * 50)
+    print(f"Scenario: {active_scenario}")
+    print(yaml.safe_dump(exp_params, default_flow_style=False))
+    print(f"Optimizer: {active_optimizer}")
+    print(yaml.safe_dump(opt_params, default_flow_style=False))
+    print("Runner:")
+    print(yaml.safe_dump(runner_config, default_flow_style=False))
 
     # Print results
     print("\n" + "=" * 50)
