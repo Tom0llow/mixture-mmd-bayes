@@ -5,10 +5,12 @@ import yaml  # type: ignore
 from runners.run_parallel import run_parallel
 from runners.run_sequantial import run_sequantial
 from utils.config import load_config
+from utils.output import save_experiment_results
 
 if __name__ == "__main__":
     # Load configuration directory
     config_dir = Path(__file__).parent.parent / "configs"
+    results_root = Path(__file__).parent.parent / "results"
 
     # Load configuration files
     exp_config = load_config(config_dir / "experiments.yaml")
@@ -106,3 +108,16 @@ if __name__ == "__main__":
         se_ed2 = stats["stderr"]
         runs = stats["runs"]
         print(f"{method}: Mean ED^2 = {mean_ed2:.4f} ± {se_ed2:.4f} (runs={runs})")
+
+    # Save results to timestamped directory
+    results_dir = save_experiment_results(
+        results=results,
+        exp_params=exp_params,
+        opt_params=opt_params,
+        runner_config=runner_config,
+        active_scenario=active_scenario,
+        active_optimizer=active_optimizer,
+        config_dir=config_dir,
+        results_root=results_root,
+    )
+    print(f"\nResults saved to: {results_dir}")
