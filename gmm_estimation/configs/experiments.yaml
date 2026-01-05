@@ -1,20 +1,46 @@
 # Experiment scenario configurations
-scenario: default
+# `scenario` may be a single name or a list of scenario names to run.
+# Define named scenarios below. Example runs: dim=1,K=2 / dim=1,K=4 / dim=15,K=2 / dim=15,K=4
+scenario:
+  - dim1_k2
+  - dim1_k4
+  # - dim15_k2
+  # - dim15_k4
 
-default:
-  # Problem dimension
+dim1_k2:
   dim: 1
-  # Number of mixture components
-  K: 4
-  # Separation between components
+  K: 2
   separation: 3.0
-  # Standard deviation of Gaussian components
   sigma: 1.0
-  # Number of training samples
   n_train: 1000
-  # Number of test samples
   n_test: 2000
-  # Number of independent runs
   R: 100
-  # Random seed (null for no fixed seed)
+  seed: null
+
+dim1_k4:
+  dim: 1
+  K: 4
+  separation: 3.0
+  sigma: 1.0
+  n_train: 1000
+  n_test: 2000
+  R: 100
+  seed: null
+
+dim15_k2:
+  dim: 15
+  K: 2
+  separation: 3.0
+  sigma: 1.0
+  n_train: 1000
+  n_test: 2000
+  R: 100
+  seed: null
+
+dim15_k4:
+  dim: 15
+  K: 4
+
+  n_test: 2000
+  R: 100
   seed: null

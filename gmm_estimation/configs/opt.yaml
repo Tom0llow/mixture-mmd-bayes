@@ -1,6 +1,8 @@
 # Optimization parameter configurations
+# Global default optimizer name used when a scenario does not specify one.
 optimizer: default
 
+# Common fallback configuration
 default:
   # Number of optimization steps
   steps: 1200
@@ -10,3 +12,28 @@ default:
   S: 32
   # Gamma scale for regularization
   gamma_scale: 1.0e-4
+
+# Per-scenario optimizer parameters. When a scenario name (e.g. dim1_k2)
+# matches a key here, those parameters are used for that scenario.
+dim1_k2:
+  steps: 1200
+  M: 32
+  S: 32
+  gamma_scale: 1.0e-4
+
+dim1_k4:
+  steps: 1200
+  M: 32
+  S: 32
+  gamma_scale: 1.0e-4
+
+dim15_k2:
+  steps: 1200
+  M: 32
+  S: 32
+  gamma_scale: 1.0e-4
+
+dim15_k4:
+  steps: 1200
+  M: 32
+  S: 32

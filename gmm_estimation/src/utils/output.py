@@ -13,6 +13,7 @@ def save_experiment_results(
     active_optimizer: str,
     config_dir: Path,
     results_root: Path,
+    parent_timestamp: str | None = None,
 ) -> Path:
     """Save experiment results and configuration to timestamped directory.
 
@@ -25,6 +26,9 @@ def save_experiment_results(
         active_optimizer: Name of active optimizer configuration
         config_dir: Path to configs directory (unused, kept for compatibility)
         results_root: Path to results root directory
+        parent_timestamp: Optional timestamp string for parent directory.
+                         If provided, uses existing parent directory.
+                         If None, creates a new timestamped parent directory.
 
     Returns:
         Path to the created results directory
@@ -32,9 +36,17 @@ def save_experiment_results(
     # Ensure results root directory exists
     results_root.mkdir(parents=True, exist_ok=True)
 
-    # Create timestamped directory
-    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    results_dir = results_root / timestamp
+    # Use provided parent_timestamp or create a new one
+    if parent_timestamp is None:
+        parent_timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    parent_dir = results_root / parent_timestamp
+    parent_dir.mkdir(parents=True, exist_ok=True)
+
+    # Make a filesystem-safe scenario directory name and create it under the
+    # parent timestamp directory.
+    safe_scenario = str(active_scenario).replace(" ", "_")
+    results_dir = parent_dir / safe_scenario
     results_dir.mkdir(parents=True, exist_ok=True)
 
     # Save results to JSON
@@ -44,7 +56,7 @@ def save_experiment_results(
 
     # Save metadata (contains all experiment configuration)
     meta = {
-        "timestamp": timestamp,
+        "timestamp": parent_timestamp,
         "scenario": active_scenario,
         "optimizer": active_optimizer,
         "mode": runner_config.get("mode", "unknown"),
