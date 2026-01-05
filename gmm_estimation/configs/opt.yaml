@@ -12,6 +12,12 @@ default:
   S: 32
   # Gamma scale for regularization
   gamma_scale: 1.0e-4
+  # Learning rate for particle updates
+  lr: 5.0e-3
+  # Inverse temperature (scaled by n_train * dim in runner if not provided)
+  beta: default
+  # KL regularization coefficient
+  lambda_kl: 0.005
 
 # Per-scenario optimizer parameters. When a scenario name (e.g. dim1_k2)
 # matches a key here, those parameters are used for that scenario.
@@ -20,20 +26,33 @@ dim1_k2:
   M: 32
   S: 32
   gamma_scale: 1.0e-4
+  lr: 5.0e-3
+  beta: default
+  lambda_kl: 0.005
 
 dim1_k4:
   steps: 1200
   M: 32
   S: 32
   gamma_scale: 1.0e-4
+  lr: 5.0e-3
+  beta: default
+  lambda_kl: 0.005
 
 dim15_k2:
   steps: 1200
   M: 32
   S: 32
   gamma_scale: 1.0e-4
+  lr: 5.0e-3
+  beta: default
+  lambda_kl: 0.005
 
 dim15_k4:
   steps: 1200
   M: 32
   S: 32
+  gamma_scale: 1.0e-4
+  lr: 5.0e-3
+  beta: default
+  lambda_kl: 0.005

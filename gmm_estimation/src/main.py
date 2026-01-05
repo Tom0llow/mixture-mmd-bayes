@@ -94,6 +94,9 @@ if __name__ == "__main__":
                 M=opt_params["M"],
                 S=opt_params["S"],
                 gamma_scale=opt_params["gamma_scale"],
+                lr=opt_params.get("lr", 5.0e-3),
+                beta=opt_params.get("beta"),
+                lambda_kl=opt_params.get("lambda_kl", 0.005),
                 R=exp_params["R"],
                 seed=exp_params.get("seed", None),
                 device=device,
@@ -128,6 +131,9 @@ if __name__ == "__main__":
                 M=opt_params["M"],
                 S=opt_params["S"],
                 gamma_scale=opt_params["gamma_scale"],
+                lr=opt_params.get("lr", 5.0e-3),
+                beta=opt_params.get("beta"),
+                lambda_kl=opt_params.get("lambda_kl", 0.005),
                 R=exp_params["R"],
                 base_seed=exp_params.get("seed", 0)
                 if exp_params.get("seed", None) is not None

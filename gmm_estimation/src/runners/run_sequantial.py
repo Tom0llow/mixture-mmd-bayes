@@ -1,4 +1,4 @@
-from typing import Dict, Optional
+from typing import Dict, Optional, Union
 
 import numpy as np
 import torch
@@ -23,8 +23,10 @@ def run_sequantial(
     M: int = 64,
     S: int = 32,
     gamma_scale: float = 1e-4,
-    prior_tau2: float = 4.0,
+    lr: float = 5.0e-3,
+    beta: Optional[Union[float, str]] = None,
     lambda_kl: float = 0.005,
+    prior_tau2: float = 4.0,
     R: int = 100,
     seed: Optional[int] = None,
     device: Optional[str] = None,
@@ -44,8 +46,15 @@ def run_sequantial(
 
     device = device or ("cuda" if torch.cuda.is_available() else "cpu")
 
-    beta = float(n_train * dim)
-    gamma = gamma_scale * beta
+    # Determine numeric beta value: if beta is None or "default", compute
+    # automatically as n_train * dim; otherwise coerce provided value to
+    # float. Use `beta_val` (float) for subsequent computations to satisfy
+    # static type checking.
+    if beta is None or beta == "default":
+        beta_val = float(n_train * dim)
+    else:
+        beta_val = float(beta)
+    gamma = gamma_scale * beta_val
 
     results: dict[str, list[float]] = {"MMD": [], "GMM-MMD": [], "Mixture-MMD": []}
 
@@ -76,9 +85,9 @@ def run_sequantial(
         # MMD-Bayes VI
         _, _, theta_particles = mfld_mmd_vi(
             X_train,
-            beta=beta,
+            beta=beta_val,
             steps=steps,
-            lr=5e-3,
+            lr=lr,
             M=M,
             S=S,
             sigma_x2=sigma**2,
@@ -96,9 +105,9 @@ def run_sequantial(
         # MMD-Bayes VI with GMM generator
         _, _, theta_particles1 = mfld_mmd_vi_gmm1(
             X_train,
-            beta=beta,
+            beta=beta_val,
             steps=steps,
-            lr=5e-3,
+            lr=lr,
             M=1,
             C=M,
             S=S,
@@ -117,10 +126,10 @@ def run_sequantial(
         # Mixture MMD-Bayes VI
         _, _, theta_particles2 = mfld_mix_mmd_vi(
             X_train,
-            beta=beta,
+            beta=beta_val,
             gamma=gamma,
             steps=steps,
-            lr=5e-3,
+            lr=lr,
             M=M,
             S=S,
             sigma_x2=sigma**2,

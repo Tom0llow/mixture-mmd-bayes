@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import multiprocessing as mp
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 
 import numpy as np
 import torch
@@ -30,6 +30,8 @@ def _run_method_loop(
     M: int,
     S: int,
     gamma_scale: float,
+    lr: float,
+    beta: Optional[Union[float, str]],
     prior_tau2: float,
     lambda_kl: float,
     out_queue: mp.Queue[Dict[str, Any]],
@@ -49,8 +51,13 @@ def _run_method_loop(
 
         dtype = torch.float64
 
-        beta = float(n_train * dim)
-        gamma = gamma_scale * beta
+        # Determine numeric beta value (float). If beta is None or
+        # "default", compute as n_train * dim; otherwise coerce to float.
+        if beta is None or beta == "default":
+            beta_val = float(n_train * dim)
+        else:
+            beta_val = float(beta)
+        gamma = gamma_scale * beta_val
 
         vals: List[float] = []
         for i in range(runs):
@@ -82,9 +89,9 @@ def _run_method_loop(
             if method == "MMD":
                 _, _, theta_particles = mfld_mmd_vi(
                     X_train,
-                    beta=beta,
+                    beta=beta_val,
                     steps=steps,
-                    lr=5e-3,
+                    lr=lr,
                     M=M,
                     S=S,
                     sigma_x2=sigma**2,
@@ -101,9 +108,9 @@ def _run_method_loop(
             elif method == "GMM-MMD":
                 _, _, theta_particles = mfld_mmd_vi_gmm1(
                     X_train,
-                    beta=beta,
+                    beta=beta_val,
                     steps=steps,
-                    lr=5e-3,
+                    lr=lr,
                     M=1,
                     C=M,
                     S=S,
@@ -121,10 +128,10 @@ def _run_method_loop(
             elif method == "Mixture-MMD":
                 _, _, theta_particles = mfld_mix_mmd_vi(
                     X_train,
-                    beta=beta,
+                    beta=beta_val,
                     gamma=gamma,
                     steps=steps,
-                    lr=5e-3,
+                    lr=lr,
                     M=M,
                     S=S,
                     sigma_x2=sigma**2,
@@ -180,6 +187,8 @@ def run_parallel(
     M: int = 64,
     S: int = 32,
     gamma_scale: float = 1e-4,
+    lr: float = 5.0e-3,
+    beta: Optional[Union[float, str]] = None,
     prior_tau2: float = 4.0,
     lambda_kl: float = 0.005,
     base_seed: int = 0,
@@ -230,6 +239,8 @@ def run_parallel(
                         M,
                         S,
                         gamma_scale,
+                        lr,
+                        beta,
                         prior_tau2,
                         lambda_kl,
                         q,
