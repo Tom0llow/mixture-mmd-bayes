@@ -4,8 +4,10 @@
 scenario:
   - dim1_k2
   - dim1_k4
-  # - dim15_k2
-  # - dim15_k4
+  - dim1_k8
+  - dim15_k2
+  - dim15_k4
+  - dim15_k8
 
 dim1_k2:
   dim: 1
@@ -27,6 +29,16 @@ dim1_k4:
   R: 100
   seed: null
 
+dim1_k8:
+  dim: 1
+  K: 8
+  separation: 3.0
+  sigma: 1.0
+  n_train: 1000
+  n_test: 2000
+  R: 100
+  seed: null
+
 dim15_k2:
   dim: 15
   K: 2
@@ -40,7 +52,19 @@ dim15_k2:
 dim15_k4:
   dim: 15
   K: 4
+  separation: 3.0
+  sigma: 1.0
+  n_train: 1000
+  n_test: 2000
+  R: 100
+  seed: null
 
+dim15_k8:
+  dim: 15
+  K: 8
+  separation: 3.0
+  sigma: 1.0
+  n_train: 1000
   n_test: 2000
   R: 100
   seed: null
