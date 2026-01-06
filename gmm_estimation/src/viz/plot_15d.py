@@ -9,7 +9,7 @@ from optimizer.mfld_mix_mmd_vi import mfld_mix_mmd_vi
 from optimizer.mfld_mmd_vi import mfld_mmd_vi
 from optimizer.mfld_mmd_vi_gmm1 import mfld_mmd_vi_gmm1
 from sampling.predictive import sample_predictive_particles
-from viz.workers import run_methods_parallel, run_methods_sequantial
+from viz.workers import run_methods_parallel, run_methods_sequential
 
 
 def plot_15d(
@@ -21,6 +21,7 @@ def plot_15d(
     n_train: int = 800,
     n_test: int = 2000,
     steps: int = 1200,
+    lr: float = 5e-3,
     M: int = 32,
     S: int = 32,
     gamma_scale: float = 1e-3,
@@ -29,7 +30,7 @@ def plot_15d(
     dtype: torch.dtype = torch.float32,
     show: bool = True,
     save_dir: Optional[str] = None,
-    mode: str = "sequantial",
+    mode: str = "sequential",
     devices: Optional[Union[str, Sequence[int]]] = None,
 ) -> Dict[str, float]:
     """Generate 2D PCA scatter plots from 15D GMM predictive samples.
@@ -51,13 +52,14 @@ def plot_15d(
 
     methods = ["MMD", "GMM-MMD", "Mixture-MMD"]
 
-    if mode == "sequantial":
-        Ys = run_methods_sequantial(
+    if mode == "sequential":
+        Ys = run_methods_sequential(
             methods,
             Xtr_np,
             Xte_np,
             sigma,
             steps,
+            lr,
             M,
             S,
             gamma_scale,
@@ -82,6 +84,7 @@ def plot_15d(
             Xte_np,
             sigma,
             steps,
+            lr,
             M,
             S,
             gamma_scale,
@@ -97,7 +100,7 @@ def plot_15d(
             Xtr,
             beta=beta,
             steps=steps,
-            lr=5e-3,
+            lr=lr,
             M=M,
             S=S,
             sigma_x2=sigma**2,
@@ -108,7 +111,7 @@ def plot_15d(
             Xtr,
             beta=beta,
             steps=steps,
-            lr=5e-3,
+            lr=lr,
             M=1,
             C=M,
             S=S,
@@ -121,7 +124,7 @@ def plot_15d(
             beta=beta,
             gamma=gamma,
             steps=steps,
-            lr=5e-3,
+            lr=lr,
             M=M,
             S=S,
             sigma_x2=sigma**2,

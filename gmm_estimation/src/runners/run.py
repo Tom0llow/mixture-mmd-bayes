@@ -5,7 +5,7 @@ from typing import Any, Dict
 import torch
 import yaml  # type: ignore
 from runners.run_parallel import run_parallel
-from runners.run_sequantial import run_sequantial
+from runners.run_sequential import run_sequential
 from utils.output import save_experiment_results
 from viz.plot_1d import plot_1d
 from viz.plot_15d import plot_15d
@@ -78,7 +78,7 @@ def run(
 
         if mode == "sequential":
             print(f"Running SEQUENTIAL mode for scenario '{active_scenario}'...")
-            results = run_sequantial(
+            results = run_sequential(
                 dim=exp_params.get("dim", 1),
                 K=exp_params.get("K", 2),
                 separation=exp_params.get("separation", 3.0),
@@ -183,6 +183,7 @@ def run(
                     n_train=exp_params.get("n_train", 800),
                     n_test=exp_params.get("n_test", 2000),
                     steps=opt_params.get("steps", 1200),
+                    lr=opt_params.get("lr", 5e-3),
                     M=opt_params.get("M", 32),
                     S=opt_params.get("S", 32),
                     gamma_scale=opt_params.get("gamma_scale", 1e-3),
@@ -203,6 +204,7 @@ def run(
                     n_train=exp_params.get("n_train", 2000),
                     n_test=exp_params.get("n_test", 5000),
                     steps=opt_params.get("steps", 1200),
+                    lr=opt_params.get("lr", 5e-3),
                     M=opt_params.get("M", 64),
                     S=opt_params.get("S", 64),
                     gamma_scale=opt_params.get("gamma_scale", 1e-3),

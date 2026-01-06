@@ -11,7 +11,7 @@ from sampling.predictive import sample_predictive_particles
 from tqdm import trange
 
 
-def run_sequantial(
+def run_sequential(
     dim: int = 1,
     K: int = 2,
     separation: float = 3.0,

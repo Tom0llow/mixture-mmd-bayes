@@ -1,28 +1,38 @@
+from __future__ import annotations
+
 import multiprocessing as mp
 import traceback
-from typing import Any, Dict, Sequence
+from typing import Any, Dict, Sequence, Tuple, TypeAlias, Union
 
 import numpy as np
 import torch
+from numpy.typing import NDArray
 from optimizer.mfld_mix_mmd_vi import mfld_mix_mmd_vi
 from optimizer.mfld_mmd_vi import mfld_mmd_vi
 from optimizer.mfld_mmd_vi_gmm1 import mfld_mmd_vi_gmm1
 from sampling.predictive import sample_predictive_particles
 
+Array: TypeAlias = NDArray[np.floating[Any]]
+
+WorkerSuccessMsg = Tuple[str, Array]
+WorkerErrorMsg = Tuple[str, None, str, str]
+WorkerMsg = Union[WorkerSuccessMsg, WorkerErrorMsg]
+
 
 def _worker_method_run(
     method: str,
     device_idx: int,
-    Xtr_np: np.ndarray,
-    Xte_np: np.ndarray,
+    Xtr_np: Array,
+    Xte_np: Array,
     sigma: float,
     steps: int,
+    lr: float,
     M: int,
     S: int,
     gamma_scale: float,
     seed: int,
     dtype: torch.dtype,
-    out_q: mp.Queue[Any],
+    out_q: mp.Queue[WorkerMsg],
 ) -> None:
     try:
         device = (
@@ -45,7 +55,7 @@ def _worker_method_run(
                 Xtr,
                 beta=beta,
                 steps=steps,
-                lr=5e-3,
+                lr=lr,
                 M=M,
                 S=S,
                 sigma_x2=sigma**2,
@@ -57,7 +67,7 @@ def _worker_method_run(
                 Xtr,
                 beta=beta,
                 steps=steps,
-                lr=5e-3,
+                lr=lr,
                 M=1,
                 C=M,
                 S=S,
@@ -71,7 +81,7 @@ def _worker_method_run(
                 beta=beta,
                 gamma=gamma,
                 steps=steps,
-                lr=5e-3,
+                lr=lr,
                 M=M,
                 S=S,
                 sigma_x2=sigma**2,
@@ -94,23 +104,24 @@ def _worker_method_run(
         out_q.put((method, None, str(e), tb))
 
 
-def run_methods_sequantial(
+def run_methods_sequential(
     methods: Sequence[str],
-    Xtr_np: np.ndarray,
-    Xte_np: np.ndarray,
+    Xtr_np: Array,
+    Xte_np: Array,
     sigma: float,
     steps: int,
+    lr: float,
     M: int,
     S: int,
     gamma_scale: float,
     seed: int,
     dtype: torch.dtype,
-) -> Dict[str, np.ndarray]:
+) -> Dict[str, Array]:
     """Run each method sequentially in the current process and return predictions.
 
     Returns a dict mapping method name to numpy array of predictive samples.
     """
-    out: Dict[str, np.ndarray] = {}
+    out: Dict[str, Array] = {}
 
     # choose device for sequential runs: prefer CUDA if available
     device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -125,7 +136,7 @@ def run_methods_sequantial(
                 Xtr,
                 beta=beta,
                 steps=steps,
-                lr=5e-3,
+                lr=lr,
                 M=M,
                 S=S,
                 sigma_x2=sigma**2,
@@ -137,7 +148,7 @@ def run_methods_sequantial(
                 Xtr,
                 beta=beta,
                 steps=steps,
-                lr=5e-3,
+                lr=lr,
                 M=1,
                 C=M,
                 S=S,
@@ -151,7 +162,7 @@ def run_methods_sequantial(
                 beta=beta,
                 gamma=gamma,
                 steps=steps,
-                lr=5e-3,
+                lr=lr,
                 M=M,
                 S=S,
                 sigma_x2=sigma**2,
@@ -175,25 +186,26 @@ def run_methods_sequantial(
 
 def run_methods_parallel(
     methods: Sequence[str],
-    Xtr_np: np.ndarray,
-    Xte_np: np.ndarray,
+    Xtr_np: Array,
+    Xte_np: Array,
     sigma: float,
     steps: int,
+    lr: float,
     M: int,
     S: int,
     gamma_scale: float,
     seed: int,
     dtype: torch.dtype,
     devices: Sequence[int],
-) -> Dict[str, np.ndarray]:
+) -> Dict[str, Array]:
     """Run methods in parallel processes and collect predictive samples.
 
     Returns a dict mapping method name to numpy array of predictive samples.
     """
     ctx = mp.get_context("spawn")
-    q: mp.Queue[Any] = ctx.Queue()
+    q: mp.Queue[WorkerMsg] = ctx.Queue()
     procs = []
-    out: Dict[str, np.ndarray] = {}
+    out: Dict[str, Array] = {}
 
     for i, method in enumerate(methods):
         device_idx = devices[i % len(devices)]
@@ -206,6 +218,7 @@ def run_methods_parallel(
                 Xte_np,
                 sigma,
                 steps,
+                lr,
                 M,
                 S,
                 gamma_scale,
