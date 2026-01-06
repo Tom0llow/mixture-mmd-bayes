@@ -1,0 +1,7 @@
+# Runner configuration
+mode: parallel  # 'sequential' or 'parallel'
+
+# GPU device configuration (only for parallel mode)
+# Set to 'auto' to automatically detect available GPUs
+# Set to comma-separated indices: '0,1,2'
+devices: auto
