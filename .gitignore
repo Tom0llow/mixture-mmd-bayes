@@ -208,4 +208,5 @@ __marimo__/
 
 # for project
 _old/
+notebooks/
 gmm_estimation/results/
