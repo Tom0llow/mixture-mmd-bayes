@@ -86,7 +86,7 @@ def _run_method_loop(
             X_train = torch.from_numpy(X_train_np).to(device=device, dtype=dtype)
             X_test = torch.from_numpy(X_test_np).to(device=device, dtype=dtype)
 
-            if method == "MMD":
+            if method == "MMDVI":
                 _, _, theta_particles = mfld_mmd_vi(
                     X_train,
                     beta=beta_val,
@@ -105,7 +105,7 @@ def _run_method_loop(
                     theta_particles, m=n_test, sigma=sigma, device=device, dtype=dtype
                 )
 
-            elif method == "GMM-MMD":
+            elif method == "MMDVI-GMM":
                 _, _, theta_particles = mfld_mmd_vi_gmm1(
                     X_train,
                     beta=beta_val,
@@ -125,7 +125,7 @@ def _run_method_loop(
                     theta_particles, m=n_test, sigma=sigma, device=device, dtype=dtype
                 )
 
-            elif method == "Mixture-MMD":
+            elif method == "M-MMDVI":
                 _, _, theta_particles = mfld_mix_mmd_vi(
                     X_train,
                     beta=beta_val,
@@ -200,7 +200,7 @@ def run_parallel(
     if len(devices) < 2:
         raise RuntimeError("At least 2 GPUs required for run_parallel")
 
-    methods = ["MMD", "GMM-MMD", "Mixture-MMD"]
+    methods = ["MMDVI", "MMDVI-GMM", "M-MMDVI"]
 
     # Distribute R runs of each method across available GPUs
     # Each method gets exactly R runs, spread across devices

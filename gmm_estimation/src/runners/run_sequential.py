@@ -56,7 +56,7 @@ def run_sequential(
         beta_val = float(beta)
     gamma = gamma_scale * beta_val
 
-    results: dict[str, list[float]] = {"MMD": [], "GMM-MMD": [], "Mixture-MMD": []}
+    results: dict[str, list[float]] = {"MMDVI": [], "MMDVI-GMM": [], "M-MMDVI": []}
 
     for _ in trange(R, leave=False):
         rng = np.random.default_rng(base_rng.integers(0, 1 << 31))
@@ -82,7 +82,7 @@ def run_sequential(
         X_train = torch.from_numpy(X_train_np).to(device=device, dtype=dtype)
         X_test = torch.from_numpy(X_test_np).to(device=device, dtype=dtype)
 
-        # MMD-Bayes VI
+        # MMDVI
         _, _, theta_particles = mfld_mmd_vi(
             X_train,
             beta=beta_val,
@@ -100,9 +100,9 @@ def run_sequential(
         Y_mmd = sample_predictive_particles(
             theta_particles, m=n_test, sigma=sigma, device=device, dtype=dtype
         )
-        results["MMD"].append(ed2_unbiased(X_test, Y_mmd).item())
+        results["MMDVI"].append(ed2_unbiased(X_test, Y_mmd).item())
 
-        # MMD-Bayes VI with GMM generator
+        # MMDVI-GMM
         _, _, theta_particles1 = mfld_mmd_vi_gmm1(
             X_train,
             beta=beta_val,
@@ -121,9 +121,9 @@ def run_sequential(
         Y_gmm = sample_predictive_particles(
             theta_particles1, m=n_test, sigma=sigma, device=device, dtype=dtype
         )
-        results["GMM-MMD"].append(ed2_unbiased(X_test, Y_gmm).item())
+        results["MMDVI-GMM"].append(ed2_unbiased(X_test, Y_gmm).item())
 
-        # Mixture MMD-Bayes VI
+        # M-MMDVI
         _, _, theta_particles2 = mfld_mix_mmd_vi(
             X_train,
             beta=beta_val,
@@ -142,7 +142,7 @@ def run_sequential(
         Y_mix = sample_predictive_particles(
             theta_particles2, m=n_test, sigma=sigma, device=device, dtype=dtype
         )
-        results["Mixture-MMD"].append(ed2_unbiased(X_test, Y_mix).item())
+        results["M-MMDVI"].append(ed2_unbiased(X_test, Y_mix).item())
 
     out: Dict[str, Dict[str, float]] = {}
     for k, vals in results.items():
