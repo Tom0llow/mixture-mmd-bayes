@@ -17,6 +17,8 @@ def plot_15d(
     K: int = 4,
     separation: float = 3.0,
     weights: Optional[np.ndarray] = None,
+    means: Optional[np.ndarray] = None,
+    layout_key: str = "auto",
     sigma: float = 1.0,
     n_train: int = 800,
     n_test: int = 2000,
@@ -39,10 +41,26 @@ def plot_15d(
     """
     rng = np.random.default_rng(seed)
     Xtr_np = sample_mixture_gaussian(
-        n_train, dim, K, sigma=sigma, separation=separation, weights=weights, rng=rng
+        n_train,
+        dim,
+        K,
+        sigma=sigma,
+        separation=separation,
+        weights=weights,
+        means=means,
+        layout_key=layout_key,
+        rng=rng,
     )
     Xte_np = sample_mixture_gaussian(
-        n_test, dim, K, sigma=sigma, separation=separation, weights=weights, rng=rng
+        n_test,
+        dim,
+        K,
+        sigma=sigma,
+        separation=separation,
+        weights=weights,
+        means=means,
+        layout_key=layout_key,
+        rng=rng,
     )
 
     device = device or ("cuda" if torch.cuda.is_available() else "cpu")
@@ -50,7 +68,7 @@ def plot_15d(
     beta = float(n_train * dim)
     gamma = gamma_scale * beta
 
-    methods = ["MMD", "GMM-MMD", "Mixture-MMD"]
+    methods = ["MMDVI", "MMDVI-GMM", "M-MMDVI"]
 
     if mode == "sequential":
         Ys = run_methods_sequential(
@@ -154,11 +172,11 @@ def plot_15d(
             .numpy()
         )
 
-        Ys = {"MMD": Y_mmd, "GMM-MMD": Y_gmm, "Mixture-MMD": Y_mix}
+        Ys = {"MMDVI": Y_mmd, "MMDVI-GMM": Y_gmm, "M-MMDVI": Y_mix}
 
-    Y_mmd = Ys["MMD"]
-    Y_gmm = Ys["GMM-MMD"]
-    Y_mix = Ys["Mixture-MMD"]
+    Y_mmd = Ys["MMDVI"]
+    Y_gmm = Ys["MMDVI-GMM"]
+    Y_mix = Ys["M-MMDVI"]
 
     # PCA via SVD on centered true test data.
     Xc = Xte_np - Xte_np.mean(0, keepdims=True)
@@ -167,21 +185,21 @@ def plot_15d(
 
     P_true = Xc @ W
     P = {
-        "MMD-Bayes VI": (Y_mmd - Xte_np.mean(0)) @ W,
-        "GMM-MMD-Bayes VI": (Y_gmm - Xte_np.mean(0)) @ W,
-        "Mixture-MMD-Bayes VI": (Y_mix - Xte_np.mean(0)) @ W,
+        "MMDVI": (Y_mmd - Xte_np.mean(0)) @ W,
+        "MMDVI-GMM": (Y_gmm - Xte_np.mean(0)) @ W,
+        "M-MMDVI": (Y_mix - Xte_np.mean(0)) @ W,
     }
 
     def ed2_np(A: np.ndarray, B: np.ndarray) -> float:
         return float(ed2_unbiased(torch.tensor(A).float(), torch.tensor(B).float()))
 
     eds = {
-        "MMD-Bayes VI": ed2_np(Xte_np, Y_mmd),
-        "GMM-MMD-Bayes VI": ed2_np(Xte_np, Y_gmm),
-        "Mixture-MMD-Bayes VI": ed2_np(Xte_np, Y_mix),
+        "MMDVI": ed2_np(Xte_np, Y_mmd),
+        "MMDVI-GMM": ed2_np(Xte_np, Y_gmm),
+        "M-MMDVI": ed2_np(Xte_np, Y_mix),
     }
 
-    for name in ["MMD-Bayes VI", "GMM-MMD-Bayes VI", "Mixture-MMD-Bayes VI"]:
+    for name in ["MMDVI", "MMDVI-GMM", "M-MMDVI"]:
         plt.figure()
         plt.scatter(P_true[:, 0], P_true[:, 1], s=6, alpha=0.3, label="True (test)")
         plt.scatter(
@@ -189,7 +207,7 @@ def plot_15d(
             P[name][:, 1],
             s=6,
             alpha=0.3,
-            label=f"{name} (ED²={eds[name]:.2f})",
+            label=f"{name}",
         )
         plt.title(f"15D GMM: PCA(2D) — True vs {name}")
         plt.xlabel("PC1")
@@ -201,9 +219,9 @@ def plot_15d(
 
             os.makedirs(save_dir, exist_ok=True)
             fname = {
-                "MMD-Bayes VI": "pca_15d_mmd.png",
-                "GMM-MMD-Bayes VI": "pca_15d_gmm.png",
-                "Mixture-MMD-Bayes VI": "pca_15d_mix.png",
+                "MMDVI": "pca_15d_mmd.png",
+                "MMDVI-GMM": "pca_15d_gmm.png",
+                "M-MMDVI": "pca_15d_mix.png",
             }[name]
             plt.savefig(os.path.join(save_dir, fname), dpi=150, bbox_inches="tight")
 

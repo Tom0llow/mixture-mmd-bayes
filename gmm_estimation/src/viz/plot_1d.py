@@ -17,6 +17,8 @@ def plot_1d(
     K: int = 2,
     separation: float = 3.0,
     weights: Optional[np.ndarray] = None,
+    means: Optional[np.ndarray] = None,
+    layout_key: str = "auto",
     sigma: float = 1.0,
     n_train: int = 800,
     n_test: int = 2000,
@@ -39,10 +41,26 @@ def plot_1d(
     """
     rng = np.random.default_rng(seed)
     Xtr_np = sample_mixture_gaussian(
-        n_train, dim, K, sigma=sigma, separation=separation, weights=weights, rng=rng
+        n_train,
+        dim,
+        K,
+        sigma=sigma,
+        separation=separation,
+        weights=weights,
+        means=means,
+        layout_key=layout_key,
+        rng=rng,
     )
     Xte_np = sample_mixture_gaussian(
-        n_test, dim, K, sigma=sigma, separation=separation, weights=weights, rng=rng
+        n_test,
+        dim,
+        K,
+        sigma=sigma,
+        separation=separation,
+        weights=weights,
+        means=means,
+        layout_key=layout_key,
+        rng=rng,
     )
 
     device = device or ("cuda" if torch.cuda.is_available() else "cpu")
@@ -50,7 +68,7 @@ def plot_1d(
     beta = float(n_train * dim)
     gamma = gamma_scale * beta
 
-    methods = ["MMD", "GMM-MMD", "Mixture-MMD"]
+    methods = ["MMDVI", "MMDVI-GMM", "M-MMDVI"]
 
     Ys: Dict[str, np.ndarray]
     if mode == "sequential":
@@ -155,11 +173,11 @@ def plot_1d(
             .numpy()
         ).ravel()
 
-        Ys = {"MMD": Y_mmd, "GMM-MMD": Y_gmm, "Mixture-MMD": Y_mix}
+        Ys = {"MMDVI": Y_mmd, "MMDVI-GMM": Y_gmm, "M-MMDVI": Y_mix}
 
-    Y_mmd = Ys["MMD"].ravel()
-    Y_gmm = Ys["GMM-MMD"].ravel()
-    Y_mix = Ys["Mixture-MMD"].ravel()
+    Y_mmd = Ys["MMDVI"].ravel()
+    Y_gmm = Ys["MMDVI-GMM"].ravel()
+    Y_mix = Ys["M-MMDVI"].ravel()
 
     Xte_1d = Xte_np.ravel()
 
@@ -169,21 +187,19 @@ def plot_1d(
         return float(ed2_unbiased(A, B))
 
     eds = {
-        "MMD-Bayes VI": ed2_np(Xte_1d, Y_mmd),
-        "GMM-MMD-Bayes VI": ed2_np(Xte_1d, Y_gmm),
-        "Mixture MMD-Bayes VI": ed2_np(Xte_1d, Y_mix),
+        "MMDVI": ed2_np(Xte_1d, Y_mmd),
+        "MMDVI-GMM": ed2_np(Xte_1d, Y_gmm),
+        "M-MMDVI": ed2_np(Xte_1d, Y_mix),
     }
 
     for name, Y in [
-        ("MMD-Bayes VI", Y_mmd),
-        ("GMM-MMD-Bayes VI", Y_gmm),
-        ("Mixture MMD-Bayes VI", Y_mix),
+        ("MMDVI", Y_mmd),
+        ("MMDVI-GMM", Y_gmm),
+        ("M-MMDVI", Y_mix),
     ]:
         plt.figure()
         plt.hist(Xte_1d, bins=60, density=True, alpha=0.4, label="True (test)")
-        plt.hist(
-            Y, bins=60, density=True, alpha=0.4, label=f"{name} (ED²={eds[name]:.3f})"
-        )
+        plt.hist(Y, bins=60, density=True, alpha=0.4, label=f"{name}")
         plt.title(f"1D GMM fit: {name} vs True")
         plt.xlabel("x")
         plt.ylabel("density")
@@ -194,9 +210,9 @@ def plot_1d(
 
             os.makedirs(save_dir, exist_ok=True)
             fname = {
-                "MMD-Bayes VI": "hist_1d_mmd.png",
-                "GMM-MMD-Bayes VI": "hist_1d_gmm.png",
-                "Mixture MMD-Bayes VI": "hist_1d_mix.png",
+                "MMDVI": "hist_1d_mmd.png",
+                "MMDVI-GMM": "hist_1d_gmm.png",
+                "M-MMDVI": "hist_1d_mix.png",
             }[name]
             plt.savefig(os.path.join(save_dir, fname), dpi=150, bbox_inches="tight")
 

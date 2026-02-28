@@ -23,6 +23,8 @@ def _run_method_loop(
     K: int,
     separation: float,
     weights: Optional[np.ndarray],
+    means: Optional[np.ndarray],
+    layout_key: str,
     sigma: float,
     n_train: int,
     n_test: int,
@@ -71,6 +73,8 @@ def _run_method_loop(
                 sigma=sigma,
                 separation=separation,
                 weights=weights,
+                means=means,
+                layout_key=layout_key,
                 rng=rng,
             )
             X_test_np = sample_mixture_gaussian(
@@ -80,13 +84,15 @@ def _run_method_loop(
                 sigma=sigma,
                 separation=separation,
                 weights=weights,
+                means=means,
+                layout_key=layout_key,
                 rng=rng,
             )
 
             X_train = torch.from_numpy(X_train_np).to(device=device, dtype=dtype)
             X_test = torch.from_numpy(X_test_np).to(device=device, dtype=dtype)
 
-            if method == "MMD":
+            if method == "MMDVI":
                 _, _, theta_particles = mfld_mmd_vi(
                     X_train,
                     beta=beta_val,
@@ -105,7 +111,7 @@ def _run_method_loop(
                     theta_particles, m=n_test, sigma=sigma, device=device, dtype=dtype
                 )
 
-            elif method == "GMM-MMD":
+            elif method == "MMDVI-GMM":
                 _, _, theta_particles = mfld_mmd_vi_gmm1(
                     X_train,
                     beta=beta_val,
@@ -125,7 +131,7 @@ def _run_method_loop(
                     theta_particles, m=n_test, sigma=sigma, device=device, dtype=dtype
                 )
 
-            elif method == "Mixture-MMD":
+            elif method == "M-MMDVI":
                 _, _, theta_particles = mfld_mix_mmd_vi(
                     X_train,
                     beta=beta_val,
@@ -154,9 +160,7 @@ def _run_method_loop(
             # Send progress update to main process
             out_queue.put({"type": "progress", "method": method, "device": device_idx})
 
-        out_queue.put(
-            {"type": "result", "method": method, "device": device_idx, "vals": vals}
-        )
+        out_queue.put({"type": "result", "method": method, "device": device_idx, "vals": vals})
     except Exception as e:
         import traceback
 
@@ -180,6 +184,8 @@ def run_parallel(
     K: int = 2,
     separation: float = 3.0,
     weights: Optional[np.ndarray] = None,
+    means: Optional[np.ndarray] = None,
+    layout_key: str = "auto",
     sigma: float = 1.0,
     n_train: int = 1000,
     n_test: int = 2000,
@@ -200,7 +206,7 @@ def run_parallel(
     if len(devices) < 2:
         raise RuntimeError("At least 2 GPUs required for run_parallel")
 
-    methods = ["MMD", "GMM-MMD", "Mixture-MMD"]
+    methods = ["MMDVI", "MMDVI-GMM", "M-MMDVI"]
 
     # Distribute R runs of each method across available GPUs
     # Each method gets exactly R runs, spread across devices
@@ -232,6 +238,8 @@ def run_parallel(
                         K,
                         separation,
                         weights,
+                        means,
+                        layout_key,
                         sigma,
                         n_train,
                         n_test,
@@ -301,10 +309,6 @@ def run_parallel(
     for k, vals in collected.items():
         arr = np.array(vals, dtype=float)
         mean = float(arr.mean()) if arr.size > 0 else float("nan")
-        se = (
-            float(arr.std(ddof=1) / max(1.0, np.sqrt(max(1, arr.size))))
-            if arr.size > 1
-            else 0.0
-        )
+        se = float(arr.std(ddof=1) / max(1.0, np.sqrt(max(1, arr.size)))) if arr.size > 1 else 0.0
         out[k] = {"mean_ED2": mean, "stderr": se, "runs": int(arr.size)}
     return out

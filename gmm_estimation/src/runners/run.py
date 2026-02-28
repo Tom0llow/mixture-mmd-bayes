@@ -34,9 +34,7 @@ def run(
     elif isinstance(raw_scenarios, list):
         active_scenarios = raw_scenarios
     else:
-        raise ValueError(
-            "`scenario` must be a string or a list of strings in experiments.yaml"
-        )
+        raise ValueError("`scenario` must be a string or a list of strings in experiments.yaml")
 
     for s in active_scenarios:
         if s not in exp_config:
@@ -53,6 +51,9 @@ def run(
 
     for active_scenario in active_scenarios:
         exp_params = exp_config[active_scenario]
+        weights = exp_params.get("weights", None)
+        means = exp_params.get("means", None)
+        layout_key = exp_params.get("layout_key", "auto")
 
         # Determine optimizer parameters for this scenario.
         if active_scenario in opt_config:
@@ -72,9 +73,7 @@ def run(
                     opt_params = opt_config["default"]
                     active_optimizer = "default"
                 else:
-                    raise ValueError(
-                        "No valid optimizer configuration found in opt.yaml"
-                    )
+                    raise ValueError("No valid optimizer configuration found in opt.yaml")
 
         if mode == "sequential":
             print(f"Running SEQUENTIAL mode for scenario '{active_scenario}'...")
@@ -82,6 +81,9 @@ def run(
                 dim=exp_params.get("dim", 1),
                 K=exp_params.get("K", 2),
                 separation=exp_params.get("separation", 3.0),
+                weights=weights,
+                means=means,
+                layout_key=layout_key,
                 sigma=exp_params.get("sigma", 1.0),
                 n_train=exp_params.get("n_train", 1000),
                 n_test=exp_params.get("n_test", 2000),
@@ -101,17 +103,14 @@ def run(
             print(f"Running PARALLEL mode for scenario '{active_scenario}'...")
             if isinstance(devices_config, str) and devices_config.lower() == "auto":
                 devices = (
-                    list(range(torch.cuda.device_count()))
-                    if torch.cuda.is_available()
-                    else []
+                    list(range(torch.cuda.device_count())) if torch.cuda.is_available() else []
                 )
             else:
                 devices = [int(x) for x in str(devices_config).split(",") if x.strip()]
 
             if len(devices) < 2:
                 raise RuntimeError(
-                    "Parallel mode requires >=2 GPUs, but only "
-                    f"{len(devices)} available."
+                    "Parallel mode requires >=2 GPUs, but only " f"{len(devices)} available."
                 )
 
             results = run_parallel(
@@ -119,6 +118,9 @@ def run(
                 dim=exp_params.get("dim", 1),
                 K=exp_params.get("K", 2),
                 separation=exp_params.get("separation", 3.0),
+                weights=weights,
+                means=means,
+                layout_key=layout_key,
                 sigma=exp_params.get("sigma", 1.0),
                 n_train=exp_params.get("n_train", 1000),
                 n_test=exp_params.get("n_test", 2000),
@@ -179,6 +181,9 @@ def run(
                     dim=exp_params.get("dim", 1),
                     K=exp_params.get("K", 2),
                     separation=exp_params.get("separation", 3.0),
+                    weights=weights,
+                    means=means,
+                    layout_key=layout_key,
                     sigma=exp_params.get("sigma", 1.0),
                     n_train=exp_params.get("n_train", 800),
                     n_test=exp_params.get("n_test", 2000),
@@ -200,6 +205,9 @@ def run(
                 plot_15d(
                     K=exp_params.get("K", 4),
                     separation=exp_params.get("separation", 3.0),
+                    weights=weights,
+                    means=means,
+                    layout_key=layout_key,
                     sigma=exp_params.get("sigma", 1.0),
                     n_train=exp_params.get("n_train", 2000),
                     n_test=exp_params.get("n_test", 5000),

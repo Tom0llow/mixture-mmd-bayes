@@ -43,7 +43,7 @@ strict = true
 ignore_missing_imports = true
 
 [tool.ruff]
-line-length = 88
+line-length = 100
 
 [tool.ruff.lint]
 select = [

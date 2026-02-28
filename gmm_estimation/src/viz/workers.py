@@ -50,7 +50,7 @@ def _worker_method_run(
         beta = float(Xtr.shape[0] * Xtr.shape[1])
         gamma = gamma_scale * beta
 
-        if method == "MMD":
+        if method == "MMDVI":
             _, _, theta = mfld_mmd_vi(
                 Xtr,
                 beta=beta,
@@ -62,7 +62,7 @@ def _worker_method_run(
                 dtype=dtype,
                 device=device,
             )
-        elif method == "GMM-MMD":
+        elif method == "MMDVI-GMM":
             _, _, theta = mfld_mmd_vi_gmm1(
                 Xtr,
                 beta=beta,
@@ -75,7 +75,7 @@ def _worker_method_run(
                 dtype=dtype,
                 device=device,
             )
-        elif method == "Mixture-MMD":
+        elif method == "M-MMDVI":
             _, _, theta = mfld_mix_mmd_vi(
                 Xtr,
                 beta=beta,
@@ -131,7 +131,7 @@ def run_methods_sequential(
         beta = float(Xtr.shape[0] * Xtr.shape[1])
         gamma = gamma_scale * beta
 
-        if method == "MMD":
+        if method == "MMDVI":
             _, _, theta = mfld_mmd_vi(
                 Xtr,
                 beta=beta,
@@ -143,7 +143,7 @@ def run_methods_sequential(
                 dtype=dtype,
                 device=device,
             )
-        elif method == "GMM-MMD":
+        elif method == "MMDVI-GMM":
             _, _, theta = mfld_mmd_vi_gmm1(
                 Xtr,
                 beta=beta,
@@ -156,7 +156,7 @@ def run_methods_sequential(
                 dtype=dtype,
                 device=device,
             )
-        elif method == "Mixture-MMD":
+        elif method == "M-MMDVI":
             _, _, theta = mfld_mix_mmd_vi(
                 Xtr,
                 beta=beta,

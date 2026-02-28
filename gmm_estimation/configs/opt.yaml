@@ -4,7 +4,7 @@ optimizer: default
 
 # Default optimizer parameters used when a scenario does not specify them.
 default:
-  steps: 2000   # Number of optimization steps
+  steps: 2500   # Number of optimization steps
   M: 32  # Number of particles for variational inference
   S: 32  # Subsample count
   gamma_scale: 1.0e-3  # Gamma scale for regularization
@@ -12,10 +12,10 @@ default:
   beta: default  # Inverse temperature (scaled by n_train * dim in runner if not provided)
   lambda_kl: 0.005  # KL regularization coefficient
 
-# Per-scenario optimizer parameters. When a scenario name (e.g. dim1_k2)
+# Per-scenario optimizer parameters. When a scenario name
 # matches a key here, those parameters are used for that scenario.
-dim1_k2:
-  steps: 2000
+opt_dim1_default: &opt_dim1_default
+  steps: 2500
   M: 32
   S: 32
   gamma_scale: 1.0e-3
@@ -23,8 +23,17 @@ dim1_k2:
   beta: default
   lambda_kl: 0.005
 
-dim1_k4:
-  steps: 2000
+opt_dim1_k8: &opt_dim1_k8
+  steps: 5000
+  M: 64
+  S: 32
+  gamma_scale: 1.0e-3
+  lr: 5.0e-3
+  beta: default
+  lambda_kl: 0.005
+
+opt_dim15_default: &opt_dim15_default
+  steps: 5000
   M: 32
   S: 32
   gamma_scale: 1.0e-3
@@ -32,38 +41,39 @@ dim1_k4:
   beta: default
   lambda_kl: 0.005
 
-dim1_k8:
-  steps: 2000
-  M: 32
+opt_dim15_k8: &opt_dim15_k8
+  steps: 5000
+  M: 64
   S: 32
   gamma_scale: 1.0e-3
   lr: 5.0e-3
   beta: default
   lambda_kl: 0.005
 
-dim15_k2:
-  steps: 3000
-  M: 64
-  S: 64
-  gamma_scale: 1.0e-3
-  lr: 5.0e-3
-  beta: default
-  lambda_kl: 0.005
+# separation 3.0 and balanced
+dim1_k2_sep30_balanced:
+  <<: *opt_dim1_default
+dim1_k4_sep30_balanced:
+  <<: *opt_dim1_default
+dim1_k8_sep30_balanced:
+  <<: *opt_dim1_k8
+dim15_k2_sep30_balanced:
+  <<: *opt_dim15_default
+dim15_k4_sep30_balanced:
+  <<: *opt_dim15_default
+dim15_k8_sep30_balanced:
+  <<: *opt_dim15_k8
 
-dim15_k4:
-  steps: 3000
-  M: 64
-  S: 64
-  gamma_scale: 1.0e-3
-  lr: 5.0e-3
-  beta: default
-  lambda_kl: 0.005
-
-dim15_k8:
-  steps: 3000
-  M: 64
-  S: 64
-  gamma_scale: 1.0e-3
-  lr: 5.0e-3
-  beta: default
-  lambda_kl: 0.005
+# separation 3.0 and imbalanced
+dim1_k2_sep30_imbalanced:
+  <<: *opt_dim1_default
+dim1_k4_sep30_imbalanced:
+  <<: *opt_dim1_default
+dim1_k8_sep30_imbalanced:
+  <<: *opt_dim1_k8
+dim15_k2_sep30_imbalanced:
+  <<: *opt_dim15_default
+dim15_k4_sep30_imbalanced:
+  <<: *opt_dim15_default
+dim15_k8_sep30_imbalanced:
+  <<: *opt_dim15_k8
