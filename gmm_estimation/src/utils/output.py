@@ -1,7 +1,30 @@
 import json
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, Tuple
+
+
+def create_results_dir(
+    results_root: Path,
+    timestamp: str | None = None,
+    scenario: str | None = None,
+) -> Tuple[Path, str]:
+    """Create a timestamped results directory (optionally with scenario subdir)."""
+    results_root.mkdir(parents=True, exist_ok=True)
+
+    if timestamp is None:
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    parent_dir = results_root / timestamp
+    parent_dir.mkdir(parents=True, exist_ok=True)
+
+    if scenario is None:
+        return parent_dir, timestamp
+
+    safe_scenario = str(scenario).replace(" ", "_")
+    results_dir = parent_dir / safe_scenario
+    results_dir.mkdir(parents=True, exist_ok=True)
+    return results_dir, timestamp
 
 
 def save_experiment_results(
@@ -33,21 +56,11 @@ def save_experiment_results(
     Returns:
         Path to the created results directory
     """
-    # Ensure results root directory exists
-    results_root.mkdir(parents=True, exist_ok=True)
-
-    # Use provided parent_timestamp or create a new one
-    if parent_timestamp is None:
-        parent_timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
-    parent_dir = results_root / parent_timestamp
-    parent_dir.mkdir(parents=True, exist_ok=True)
-
-    # Make a filesystem-safe scenario directory name and create it under the
-    # parent timestamp directory.
-    safe_scenario = str(active_scenario).replace(" ", "_")
-    results_dir = parent_dir / safe_scenario
-    results_dir.mkdir(parents=True, exist_ok=True)
+    results_dir, parent_timestamp = create_results_dir(
+        results_root=results_root,
+        timestamp=parent_timestamp,
+        scenario=active_scenario,
+    )
 
     # Save results to JSON
     results_file = results_dir / "results.json"
