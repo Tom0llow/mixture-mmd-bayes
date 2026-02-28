@@ -17,6 +17,8 @@ def plot_1d(
     K: int = 2,
     separation: float = 3.0,
     weights: Optional[np.ndarray] = None,
+    means: Optional[np.ndarray] = None,
+    layout_key: str = "auto",
     sigma: float = 1.0,
     n_train: int = 800,
     n_test: int = 2000,
@@ -39,10 +41,26 @@ def plot_1d(
     """
     rng = np.random.default_rng(seed)
     Xtr_np = sample_mixture_gaussian(
-        n_train, dim, K, sigma=sigma, separation=separation, weights=weights, rng=rng
+        n_train,
+        dim,
+        K,
+        sigma=sigma,
+        separation=separation,
+        weights=weights,
+        means=means,
+        layout_key=layout_key,
+        rng=rng,
     )
     Xte_np = sample_mixture_gaussian(
-        n_test, dim, K, sigma=sigma, separation=separation, weights=weights, rng=rng
+        n_test,
+        dim,
+        K,
+        sigma=sigma,
+        separation=separation,
+        weights=weights,
+        means=means,
+        layout_key=layout_key,
+        rng=rng,
     )
 
     device = device or ("cuda" if torch.cuda.is_available() else "cpu")

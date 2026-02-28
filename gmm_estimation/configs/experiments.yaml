@@ -1,70 +1,101 @@
 # Experiment scenario configurations
 # `scenario` may be a single name or a list of scenario names to run.
 # Define named scenarios below. Example runs: dim=1,K=2 / dim=1,K=4 / dim=15,K=2 / dim=15,K=4
+# Separation values follow the paper setting: 3.0 (in units of sigma).
+# Optional: layout_key can be set per scenario (auto, line, basis, axes, circle).
+
 scenario:
-  - dim1_k2
-  - dim1_k4
-  - dim1_k8
-  - dim15_k2
-  - dim15_k4
-  - dim15_k8
+  # separation 3.0 and balanced
+  - dim1_k2_sep30_balanced
+  - dim1_k4_sep30_balanced
+  - dim1_k8_sep30_balanced
+  - dim15_k2_sep30_balanced
+  - dim15_k4_sep30_balanced
+  - dim15_k8_sep30_balanced
+  # separation 3.0 and imbalanced
+  - dim1_k2_sep30_imbalanced
+  - dim1_k4_sep30_imbalanced
+  - dim1_k8_sep30_imbalanced
+  - dim15_k2_sep30_imbalanced
+  - dim15_k4_sep30_imbalanced
+  - dim15_k8_sep30_imbalanced
 
-dim1_k2:
+# default parameters for all scenarios
+defaults: &defaults
+  sigma: 1.0
+  n_train: 1000
+  n_test: 2000
+  R: 100
+  seed: null
+
+defaults_sep30: &defaults_sep30
+  <<: *defaults
+  separation: 3.0
+
+# separation 3.0 and balanced
+dim1_k2_sep30_balanced:
+  <<: *defaults_sep30
   dim: 1
   K: 2
-  separation: 3.0
-  sigma: 1.0
-  n_train: 1000
-  n_test: 2000
-  R: 100
-  seed: null
 
-dim1_k4:
+dim1_k4_sep30_balanced:
+  <<: *defaults_sep30
   dim: 1
   K: 4
-  separation: 3.0
-  sigma: 1.0
-  n_train: 1000
-  n_test: 2000
-  R: 100
-  seed: null
 
-dim1_k8:
+dim1_k8_sep30_balanced:
+  <<: *defaults_sep30
   dim: 1
   K: 8
-  separation: 3.0
-  sigma: 1.0
-  n_train: 1000
-  n_test: 2000
-  R: 100
-  seed: null
 
-dim15_k2:
+dim15_k2_sep30_balanced:
+  <<: *defaults_sep30
   dim: 15
   K: 2
-  separation: 3.0
-  sigma: 1.0
-  n_train: 1000
-  n_test: 2000
-  R: 100
-  seed: null
 
-dim15_k4:
+dim15_k4_sep30_balanced:
+  <<: *defaults_sep30
   dim: 15
   K: 4
-  separation: 3.0
-  sigma: 1.0
-  n_train: 1000
-  n_test: 2000
-  R: 100
-  seed: null
 
-dim15_k8:
+dim15_k8_sep30_balanced:
+  <<: *defaults_sep30
   dim: 15
   K: 8
-  separation: 3.0
-  sigma: 1.0
-  n_train: 1000
-  n_test: 2000
-  R: 100
-  seed: null
+
+# separation 3.0 and imbalanced
+dim1_k2_sep30_imbalanced:
+  <<: *defaults_sep30
+  dim: 1
+  K: 2
+  weights: [0.7, 0.3]
+
+dim1_k4_sep30_imbalanced:
+  <<: *defaults_sep30
+  dim: 1
+  K: 4
+  weights: [0.7, 0.1, 0.1, 0.1]
+
+dim1_k8_sep30_imbalanced:
+  <<: *defaults_sep30
+  dim: 1
+  K: 8
+  weights: [0.65, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05]
+
+dim15_k2_sep30_imbalanced:
+  <<: *defaults_sep30
+  dim: 15
+  K: 2
+  weights: [0.7, 0.3]
+
+dim15_k4_sep30_imbalanced:
+  <<: *defaults_sep30
+  dim: 15
+  K: 4
+  weights: [0.7, 0.1, 0.1, 0.1]
+
+dim15_k8_sep30_imbalanced:
+  <<: *defaults_sep30
+  dim: 15
+  K: 8
+  weights: [0.65, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05]

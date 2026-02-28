@@ -16,6 +16,8 @@ def run_sequential(
     K: int = 2,
     separation: float = 3.0,
     weights: Optional[np.ndarray] = None,
+    means: Optional[np.ndarray] = None,
+    layout_key: str = "auto",
     sigma: float = 1.0,
     n_train: int = 1000,
     n_test: int = 2000,
@@ -68,6 +70,8 @@ def run_sequential(
             sigma=sigma,
             separation=separation,
             weights=weights,
+            means=means,
+            layout_key=layout_key,
             rng=rng,
         )
         X_test_np = sample_mixture_gaussian(
@@ -77,6 +81,8 @@ def run_sequential(
             sigma=sigma,
             separation=separation,
             weights=weights,
+            means=means,
+            layout_key=layout_key,
             rng=rng,
         )
         X_train = torch.from_numpy(X_train_np).to(device=device, dtype=dtype)
