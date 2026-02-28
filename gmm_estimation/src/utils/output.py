@@ -1,7 +1,7 @@
 import json
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, Tuple
+from typing import Any, Dict, List, Tuple
 
 
 def create_results_dir(
@@ -79,5 +79,31 @@ def save_experiment_results(
     meta_file = results_dir / "meta.json"
     with open(meta_file, "w") as f:
         json.dump(meta, f, indent=2)
+
+    return results_dir
+
+
+def save_gamma_sweep_results(
+    results: List[Dict[str, Any]],
+    meta: Dict[str, Any],
+    results_root: Path,
+    timestamp: str | None = None,
+) -> Path:
+    """Save gamma sweep results and metadata to timestamped directory."""
+    results_dir, timestamp = create_results_dir(
+        results_root=results_root,
+        timestamp=timestamp,
+    )
+
+    results_file = results_dir / "results.json"
+    with open(results_file, "w") as f:
+        json.dump(results, f, indent=2)
+
+    meta_payload = dict(meta)
+    if meta_payload.get("timestamp") is None:
+        meta_payload["timestamp"] = timestamp
+    meta_file = results_dir / "meta.json"
+    with open(meta_file, "w") as f:
+        json.dump(meta_payload, f, indent=2)
 
     return results_dir
