@@ -1,0 +1,6 @@
+# Gamma sweep configuration for M-MMDVI
+# Choose a single scenario from experiments.yaml
+scenario: dim15_k8_sep30_imbalanced
+
+# Gamma scale list (gamma = gamma_scale * beta)
+gamma_scales: [0.0, 1.0e-4, 5.0e-4, 1.0e-3, 5.0e-3, 1.0e-2, 5.0e-2, 1.0e-1, 5.0e-1, 1.0]
